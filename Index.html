@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TiffyAI Snake Game</title>
+  <style>
+    body {
+      background: url('backslot.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #gameCanvas {
+      background-color: rgba(0, 0, 0, 0.6);
+      border: 2px solid #fff;
+    }
+    #score {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #0ff;
+      font-size: 24px;
+      text-shadow: 0 0 5px #0ff, 0 0 10px #f0f;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0.00000000</div>
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <script src="snake.js"></script>
+</body>
+</html>
