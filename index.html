@@ -9,53 +9,36 @@
       padding: 0;
       background: url('stage1.jpg') no-repeat center center fixed;
       background-size: cover;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: start;
       height: 100vh;
-      font-family: Arial, sans-serif;
     }
 
     canvas {
       background-color: rgba(0, 0, 0, 0.6);
       border: 4px solid #0ff;
       box-shadow: 0 0 25px #0ff;
-      width: 90vw;
-      height: 90vw;
+      width: 95vw;
+      height: 95vw;
       max-width: 600px;
       max-height: 600px;
+      margin-top: 20px;
     }
 
-    #touch-controls {
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .arrow-row {
-      margin: 5px;
-    }
-
-    .arrow-btn {
-      background: rgba(0, 255, 255, 0.3);
-      border: 2px solid #0ff;
-      border-radius: 50%;
-      width: 70px;
-      height: 70px;
-      font-size: 30px;
-      color: #fff;
+    #score-display {
+      margin-top: 15px;
+      color: #0ff;
+      font-size: 20px;
+      font-weight: bold;
       text-shadow: 0 0 5px #0ff;
-      box-shadow: 0 0 15px #00ffff;
-      cursor: pointer;
-    }
-
-    .arrow-btn:active {
-      background-color: rgba(0, 255, 255, 0.5);
     }
 
     #restart-btn {
-      margin-top: 10px;
-      padding: 10px 25px;
+      margin: 15px;
+      padding: 12px 30px;
       font-size: 18px;
       font-weight: bold;
       border: 2px solid #0ff;
@@ -67,18 +50,48 @@
       cursor: pointer;
     }
 
-    #score-display {
-      margin-top: 5px;
-      color: #0ff;
-      font-size: 18px;
+    #touch-controls {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .arrow-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 10px 0;
+    }
+
+    .arrow-btn {
+      background: rgba(0, 255, 255, 0.3);
+      border: 3px solid #0ff;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      font-size: 40px;
+      color: #fff;
       text-shadow: 0 0 5px #0ff;
+      box-shadow: 0 0 15px #00ffff;
+      cursor: pointer;
+    }
+
+    .arrow-btn:active {
+      background-color: rgba(0, 255, 255, 0.5);
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 400px) {
+      .arrow-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 30px;
+      }
     }
   </style>
 </head>
 <body>
   <canvas id="game" width="600" height="600"></canvas>
   <div id="score-display">Score: 0</div>
-
   <button id="restart-btn" onclick="restartGame()">Restart</button>
 
   <div id="touch-controls">
@@ -92,7 +105,6 @@
     </div>
   </div>
 
-  <!-- Sound effects -->
   <audio id="eatSound" src="eat.wav" preload="auto"></audio>
   <audio id="gameOverSound" src="game-over.wav" preload="auto"></audio>
 
@@ -102,13 +114,8 @@
     const box = 30;
     let direction = "RIGHT";
     let score = 0;
-
     let snake = [{ x: 9 * box, y: 10 * box }];
-
-    let food = {
-      x: Math.floor(Math.random() * 19) * box,
-      y: Math.floor(Math.random() * 19) * box
-    };
+    let food = { x: Math.floor(Math.random() * 19) * box, y: Math.floor(Math.random() * 19) * box };
 
     const foodImage = new Image();
     foodImage.src = "TiffyAI-Token.png";
@@ -137,7 +144,7 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = (i === 0) ? "#00ffff" : "#00aaaa";
+        ctx.fillStyle = (i === 0) ? "#00ffff" : "#00cccc";
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
       }
 
@@ -199,7 +206,7 @@
     }
 
     document.addEventListener("keydown", setDirection);
-    restartGame(); // start first time
+    restartGame();
   </script>
 </body>
 </html>
