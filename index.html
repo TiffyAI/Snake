@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('stage1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      background-color: rgba(0, 0, 0, 0.6);
+      border: 4px solid #0ff;
+      box-shadow: 0 0 25px #0ff;
+      width: 90vw;
+      height: 90vw;
+      max-width: 600px;
+      max-height: 600px;
+    }
+
+    #touch-controls {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .arrow-row {
+      margin: 5px;
+    }
+
+    .arrow-btn {
+      background: rgba(0, 255, 255, 0.3);
+      border: 2px solid #0ff;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      font-size: 30px;
+      color: #fff;
+      text-shadow: 0 0 5px #0ff;
+      box-shadow: 0 0 15px #00ffff;
+      cursor: pointer;
+    }
+
+    .arrow-btn:active {
+      background-color: rgba(0, 255, 255, 0.5);
+    }
+
+    #restart-btn {
+      margin-top: 10px;
+      padding: 10px 25px;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid #0ff;
+      background: rgba(0, 0, 0, 0.5);
+      color: #0ff;
+      text-shadow: 0 0 5px #0ff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #0ff;
+      cursor: pointer;
+    }
+
+    #score-display {
+      margin-top: 5px;
+      color: #0ff;
+      font-size: 18px;
+      text-shadow: 0 0 5px #0ff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="600" height="600"></canvas>
+  <div id="score-display">Score: 0</div>
+
+  <button id="restart-btn" onclick="restartGame()">Restart</button>
+
+  <div id="touch-controls">
+    <div class="arrow-row">
+      <button class="arrow-btn" onclick="setTouchDirection('UP')">⬆️</button>
+    </div>
+    <div class="arrow-row">
+      <button class="arrow-btn" onclick="setTouchDirection('LEFT')">⬅️</button>
+      <button class="arrow-btn" onclick="setTouchDirection('DOWN')">⬇️</button>
+      <button class="arrow-btn" onclick="setTouchDirection('RIGHT')">➡️</button>
+    </div>
+  </div>
+
+  <!-- Sound effects -->
+  <audio id="eatSound" src="eat.wav" preload="auto"></audio>
+  <audio id="gameOverSound" src="game-over.wav" preload="auto"></audio>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 30;
+    let direction = "RIGHT";
+    let score = 0;
+
+    let snake = [{ x: 9 * box, y: 10 * box }];
+
+    let food = {
+      x: Math.floor(Math.random() * 19) * box,
+      y: Math.floor(Math.random() * 19) * box
+    };
+
+    const foodImage = new Image();
+    foodImage.src = "TiffyAI-Token.png";
+
+    const eatSound = document.getElementById("eatSound");
+    const gameOverSound = document.getElementById("gameOverSound");
+    const scoreDisplay = document.getElementById("score-display");
+
+    let gameInterval = null;
+
+    function setDirection(event) {
+      if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    }
+
+    function setTouchDirection(dir) {
+      if (dir === 'LEFT' && direction !== 'RIGHT') direction = 'LEFT';
+      else if (dir === 'UP' && direction !== 'DOWN') direction = 'UP';
+      else if (dir === 'RIGHT' && direction !== 'LEFT') direction = 'RIGHT';
+      else if (dir === 'DOWN' && direction !== 'UP') direction = 'DOWN';
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = (i === 0) ? "#00ffff" : "#00aaaa";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      }
+
+      ctx.drawImage(foodImage, food.x, food.y, box, box);
+
+      let snakeX = snake[0].x;
+      let snakeY = snake[0].y;
+
+      if (direction === "LEFT") snakeX -= box;
+      if (direction === "UP") snakeY -= box;
+      if (direction === "RIGHT") snakeX += box;
+      if (direction === "DOWN") snakeY += box;
+
+      if (snakeX === food.x && snakeY === food.y) {
+        score++;
+        eatSound.play();
+        food = {
+          x: Math.floor(Math.random() * 19) * box,
+          y: Math.floor(Math.random() * 19) * box
+        };
+      } else {
+        snake.pop();
+      }
+
+      const newHead = { x: snakeX, y: snakeY };
+
+      if (
+        snakeX < 0 || snakeX >= canvas.width ||
+        snakeY < 0 || snakeY >= canvas.height ||
+        collision(newHead, snake)
+      ) {
+        clearInterval(gameInterval);
+        gameOverSound.play();
+        const finalScore = (score * 0.00000001).toFixed(8);
+        scoreDisplay.textContent = `Game Over! You earned: ${finalScore}`;
+        localStorage.setItem("tiffySnakeScore", finalScore);
+        return;
+      }
+
+      snake.unshift(newHead);
+      scoreDisplay.textContent = `Score: ${(score * 0.00000001).toFixed(8)}`;
+    }
+
+    function collision(head, array) {
+      return array.some(part => head.x === part.x && head.y === part.y);
+    }
+
+    function restartGame() {
+      snake = [{ x: 9 * box, y: 10 * box }];
+      direction = "RIGHT";
+      score = 0;
+      food = {
+        x: Math.floor(Math.random() * 19) * box,
+        y: Math.floor(Math.random() * 19) * box
+      };
+      scoreDisplay.textContent = "Score: 0";
+      clearInterval(gameInterval);
+      gameInterval = setInterval(draw, 130);
+    }
+
+    document.addEventListener("keydown", setDirection);
+    restartGame(); // start first time
+  </script>
+</body>
+</html>
