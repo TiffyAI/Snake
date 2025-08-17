@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('stage1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    canvas {
+      background-color: rgba(0, 0, 0, 0.6);
+      border: 4px solid #0ff;
+      box-shadow: 0 0 25px #0ff;
+      width: 95vw;
+      height: 95vh;
+      margin-top: 10px;
+    }
+
+    #score-display {
+      margin-top: 10px;
+      color: #0ff;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    #restart-btn {
+      margin: 12px;
+      padding: 12px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid #0ff;
+      background: rgba(0, 0, 0, 0.5);
+      color: #0ff;
+      text-shadow: 0 0 5px #0ff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #0ff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="score-display">Score: 0.00 TIFFY</div>
+  <button id="restart-btn" onclick="restartGame()">Restart</button>
+
+  <audio id="eatSound" src="eat.wav" preload="auto"></audio>
+  <audio id="gameOverSound" src="game-over.wav" preload="auto"></audio>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth * 0.95;
+      canvas.height = window.innerHeight * 0.95;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const box = 30;
+    let direction = "RIGHT";
+    let score = 0;
+    let snake = [{ x: 9 * box, y: 10 * box }];
+    let food = { 
+      x: Math.floor(Math.random() * (canvas.width / box)) * box, 
+      y: Math.floor(Math.random() * (canvas.height / box)) * box 
+    };
+
+    const foodImage = new Image();
+    foodImage.src = "TiffyAI-Token.png";
+
+    const eatSound = document.getElementById("eatSound");
+    const gameOverSound = document.getElementById("gameOverSound");
+    const scoreDisplay = document.getElementById("score-display");
+
+    let gameInterval = null;
+
+    function setDirection(event) {
+      if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    }
+
+    // 📱 Gyroscope Tilt Controls
+    window.addEventListener("deviceorientation", function(event) {
+      let tiltLR = event.gamma; // left-right [-90,90]
+      let tiltFB = event.beta;  // front-back [-180,180]
+
+      if (Math.abs(tiltLR) > Math.abs(tiltFB)) {
+        if (tiltLR > 15 && direction !== "LEFT") direction = "RIGHT";
+        if (tiltLR < -15 && direction !== "RIGHT") direction = "LEFT";
+      } else {
+        if (tiltFB > 15 && direction !== "UP") direction = "DOWN";
+        if (tiltFB < -15 && direction !== "DOWN") direction = "UP";
+      }
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = (i === 0) ? "#00ffff" : "#00cccc";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      }
+
+      ctx.drawImage(foodImage, food.x, food.y, box, box);
+
+      let snakeX = snake[0].x;
+      let snakeY = snake[0].y;
+
+      if (direction === "LEFT") snakeX -= box;
+      if (direction === "UP") snakeY -= box;
+      if (direction === "RIGHT") snakeX += box;
+      if (direction === "DOWN") snakeY += box;
+
+      if (snakeX === food.x && snakeY === food.y) {
+        score++;
+        eatSound.play();
+        food = {
+          x: Math.floor(Math.random() * (canvas.width / box)) * box,
+          y: Math.floor(Math.random() * (canvas.height / box)) * box
+        };
+      } else {
+        snake.pop();
+      }
+
+      const newHead = { x: snakeX, y: snakeY };
+
+      if (
+        snakeX < 0 || snakeX >= canvas.width ||
+        snakeY < 0 || snakeY >= canvas.height ||
+        collision(newHead, snake)
+      ) {
+        clearInterval(gameInterval);
+        gameOverSound.play();
+        const finalScore = (score * 0.05).toFixed(2);
+        scoreDisplay.textContent = `Game Over! You earned: ${finalScore} TIFFY`;
+        localStorage.setItem("tiffySnakeScore", finalScore);
+        return;
+      }
+
+      snake.unshift(newHead);
+      scoreDisplay.textContent = `Score: ${(score * 0.05).toFixed(2)} TIFFY`;
+    }
+
+    function collision(head, array) {
+      return array.some(part => head.x === part.x && head.y === part.y);
+    }
+
+    function restartGame() {
+      snake = [{ x: 9 * box, y: 10 * box }];
+      direction = "RIGHT";
+      score = 0;
+      food = {
+        x: Math.floor(Math.random() * (canvas.width / box)) * box,
+        y: Math.floor(Math.random() * (canvas.height / box)) * box
+      };
+      scoreDisplay.textContent = "Score: 0.00 TIFFY";
+      clearInterval(gameInterval);
+      gameInterval = setInterval(draw, 130);
+    }
+
+    document.addEventListener("keydown", setDirection);
+    restartGame();
+  </script>
+</body>
+</html>
