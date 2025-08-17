@@ -23,7 +23,7 @@
       border: 4px solid #0ff;
       box-shadow: 0 0 25px #0ff;
       width: 95vw;
-      height: 95vh;
+      height: 90vh; /* ⬅️ slightly smaller so score + button show */
       margin-top: 10px;
     }
 
@@ -64,7 +64,7 @@
 
     function resizeCanvas() {
       canvas.width = window.innerWidth * 0.95;
-      canvas.height = window.innerHeight * 0.95;
+      canvas.height = window.innerHeight * 0.90; // match CSS
     }
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
