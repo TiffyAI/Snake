@@ -160,7 +160,12 @@
         gameOverSound.play();
         const finalScore = (score * 0.05).toFixed(2);
         scoreDisplay.textContent = `Game Over! You earned: ${finalScore} TIFFY`;
-        localStorage.setItem("tiffySnakeScore", finalScore);
+
+        // ✅ Sync with tetrusScore in localStorage
+        let prev = parseFloat(localStorage.getItem("tetrusScore") || "0");
+        let newTotal = prev + parseFloat(finalScore);
+        localStorage.setItem("tetrusScore", newTotal.toFixed(2));
+
         return;
       }
 
